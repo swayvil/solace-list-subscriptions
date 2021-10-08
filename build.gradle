@@ -1,0 +1,157 @@
+apply plugin: 'java-library'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'application'
+
+// Don't need these task, so disabling them. Makes it possible to avoid
+// declaring a single application main class.
+startScripts.enabled = false
+run.enabled = false
+
+distTar.enabled=false
+distZip.enabled=true
+
+applicationName = 'solace-subscriptions-review'
+version = ''
+
+eclipse {
+  project {
+    name = 'semp.java'
+  }
+}
+
+idea {
+  project {
+    outputFile = new File('.', 'semp.java.ipr')
+  }
+  module {
+    name = 'semp.java'
+  }
+  workspace {
+//    outputFile = new File('.', 'semp.java.iws')
+  }
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	baseName = 'solace-subscriptions-review'
+    version =  version
+    manifest {
+        attributes 'Implementation-Title': 'Solace PubSub+ Msg-VPN Topic Subscriptions Review',
+                   'Implementation-Version': version,
+                    'Main-Class': 'com.solace.review.Subscriptions'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+configurations {
+    tools
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    swagger_annotations_version = "1.5.8"
+    jackson_version = "2.7.5"
+    jersey_version = "2.22.2"
+    junit_version = "4.12"
+    swagger_codegen_cli = "2.2.2"
+}
+
+dependencies {
+    tools "io.swagger:swagger-codegen-cli:$swagger_codegen_cli"
+
+    // Swagger Java Client API Dependencies
+    implementation "io.swagger:swagger-annotations:$swagger_annotations_version"
+    implementation "org.glassfish.jersey.core:jersey-client:$jersey_version"
+    implementation "org.glassfish.jersey.media:jersey-media-multipart:$jersey_version"
+    implementation "org.glassfish.jersey.media:jersey-media-json-jackson:$jersey_version"
+    implementation "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
+    implementation "com.brsanthu:migbase64:2.2"
+    implementation("com.google.code.gson:gson:2.6.2")
+    implementation("com.squareup.okhttp:okhttp:2.7.5")
+    implementation("com.squareup.okhttp:logging-interceptor:2.7.5")
+    implementation("joda-time:joda-time:2.10.12")
+    testImplementation "junit:junit:$junit_version"
+
+    implementation "javax.activation:activation:1.1.1"
+}
+
+task createAllStartScripts() {
+     // just a placeholder
+}
+  def scripts = [ 'solace-subscriptions-review':'com.solace.review.Subscriptions'  ]
+  scripts.each() { scriptName, className ->
+          def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) {
+        mainClassName = className
+        applicationName = scriptName
+        outputDir = new File(project.buildDir, 'scripts')
+        classpath = jar.outputs.files + project.configurations.runtimeClasspath
+    }
+      applicationDistribution.into("bin") {
+            from(t)
+            fileMode = 0755
+			duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+    createAllStartScripts.dependsOn(t)
+}
+
+installDist {
+    destinationDir = new File(project.buildDir, 'staged')
+}
+
+assemble.dependsOn installDist
+
+task buildSempLib {
+        copy {
+            from configurations.tools
+            into new File(project.buildDir, 'tools')
+        }
+        def f = new File('swagger.yaml')
+        if (!f.exists()) {
+            new URL('https://products.solace.com/download/PUBSUB_SEMPV2_SCHEMA_YAML').withInputStream{ i -> f.withOutputStream{ it << i }}
+        }
+        delete 'workdir'
+        mkdir 'workdir'
+        javaexec {
+            main="-jar";
+            classpath configurations.tools
+            workingDir = "workdir"
+            args = [
+                    "../build/tools/swagger-codegen-cli-${swagger_codegen_cli}.jar",
+                    "generate",
+                    "-l",
+                    "java",
+                    "-i",
+                    "../swagger.yaml",
+                    "-c",
+                    "../codegen_config_java.json"
+                    ]
+        }
+        // Cleanup
+        delete "workdir/gradle", "workdir/src/test"
+        delete fileTree("workdir") {
+            include "*"
+        }
+        copy {
+            from "workdir"
+            into "."
+        }
+        delete "workdir"
+}
+
+task sempLibPresent {
+    def f = new File('docs')   // we take the presence of the docs directory as an evidence that the library has been built
+    if (!f.exists()) {
+        buildSempLib.execute()
+    }
+}
+
+assemble.dependsOn sempLibPresent

@@ -21,3 +21,25 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+
+.gradle/
+.idea/
+build/
+gradle/
+docs/
+src/main/java/io
+src/main/java/com/solace/solace.iml
+src/main/java/com/solace/labs/*
+src/main/AndroidManifest.xml
+src/main/main.iml
+gradlew
+gradlew.bat
+*.iml
+.DS_Store
+
+.vscode/settings.json
+.swagger-codegen/VERSION
+.settings/org.eclipse.buildship.core.prefs
+.project
+.classpath
