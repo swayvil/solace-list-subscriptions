@@ -3,7 +3,7 @@ List all topic subscriptions on a Solace Message-VPN
 
 ## How to
 Collect the SEMP Swagger of your broker version:
-(http://<BROKER_HOST>:8080/SEMP/v2/monitor/spec)[http://<BROKER_HOST>:8080/SEMP/v2/monitor/spec]
+[http://<BROKER_HOST>:8080/SEMP/v2/monitor/spec](http://<BROKER_HOST>:8080/SEMP/v2/monitor/spec)
 
 And replace the file swagger.yaml in the home folder of this repo.
 ### Build
