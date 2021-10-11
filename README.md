@@ -24,14 +24,27 @@ java -jar solace-subscriptions-review.jar http://localhost:8080 admin admin defa
 
 Example of output:
 ```
-=== Review Topic Subscriptions for Message-VPN default ===
+=== Display Topic Subscriptions for Message-VPN default ===
 Retrieved 2 Clients
-#bridge/local/#cluster:cd17890f3f81000a614dc72f00000000/solace/306/1
+#bridge/local/#cluster:cd17890f3f81000a614dc72f00000000/solace/307/1
 #client
     #MCAST/>
     #SEMP/solace/>
     #P2P/solace/#client/>
-    #P2P/solace/WnAHbdbR/#client/>
     #P2P/v:solace/#client/>
     #SEMP/v:solace/>
+    #P2P/solace/WnAHbdbR/#client/>
+
+=> Output written to default-clients-subscriptions.csv
+
+
+=== Display Topic Subscriptions for Message-VPN default queues ===
+Retrieved 3 Queues
+#cluster:cd17890f3f81000a614dc72f00000000
+dmq
+test
+    un
+    deux/>
+
+=> Output written to default-queues-subscriptions.csv
 ```
