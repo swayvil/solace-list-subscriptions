@@ -43,3 +43,4 @@ gradlew.bat
 .settings/org.eclipse.buildship.core.prefs
 .project
 .classpath
+*.csv
