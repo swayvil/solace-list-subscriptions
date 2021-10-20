@@ -130,15 +130,22 @@ public class Subscriptions {
 
         for (int i = 0; i < clientList.size(); i++) {
             System.out.printf("%s\n", clientList.get(i).getClientName());
-            output += clientList.get(i).getClientName() + "\n";
+            output += clientList.get(i).getClientName() + ";" + clientList.get(i).getClientUsername() + ";";
             List<MsgVpnClientSubscription> clisubList = getClientSubscriptions(msgVpnName,
                     clientList.get(i).getClientName());
             if (clisubList == null) {
                 throw new Exception("Can\'t fetch topic subscriptions");
             }
-            for (int j = 0; j < clisubList.size(); j++) {
-                output += ";" + clisubList.get(j).getSubscriptionTopic() + "\n";
-                System.out.printf("    %s\n", clisubList.get(j).getSubscriptionTopic());
+            if (clisubList.size() == 0) {
+                output += "\n";
+            } else {
+                for (int j = 0; j < clisubList.size(); j++) {
+                    if (j > 0) {
+                        output += ";;";
+                    }
+                    output += clisubList.get(j).getSubscriptionTopic() + "\n";
+                    System.out.printf("    %s\n", clisubList.get(j).getSubscriptionTopic());
+                }
             }
         }
         return output;
@@ -155,16 +162,23 @@ public class Subscriptions {
         System.out.println("Retrieved " + queueList.size() + " Queues");
 
         for (int i = 0; i < queueList.size(); i++) {
-            output += queueList.get(i).getQueueName() + "\n";
+            output += queueList.get(i).getQueueName() + ";" + queueList.get(i).getOwner() + ";" + queueList.get(i).getPermission()  + ";";
             System.out.printf("%s\n", queueList.get(i).getQueueName());
             List<MsgVpnQueueSubscription> queueSubList = getQueueSubscriptions(msgVpnName,
                     queueList.get(i).getQueueName());
             if (queueSubList == null) {
                 throw new Exception("Can\'t fetch topic subscriptions");
             }
-            for (int j = 0; j < queueSubList.size(); j++) {
-                output += ";" + queueSubList.get(j).getSubscriptionTopic() + "\n";
-                System.out.printf("    %s\n", queueSubList.get(j).getSubscriptionTopic());
+            if (queueSubList.size() == 0) {
+                output += "\n";
+            } else {
+                for (int j = 0; j < queueSubList.size(); j++) {
+                    if (j > 0) {
+                        output += ";;;";
+                    }
+                    output += queueSubList.get(j).getSubscriptionTopic() + "\n";
+                    System.out.printf("    %s\n", queueSubList.get(j).getSubscriptionTopic());
+                }
             }
         }
         return output;
@@ -200,12 +214,12 @@ public class Subscriptions {
 
         try {
             app.initialize(vmrBasePath, vmrUser, vmrPassword);
-            output = "Client name;Topic subscription\n";
+            output = "Client name;Client username;Topic subscription\n";
             output += app.displayClientsSubscriptions(msgVpnName);
             app.writeToFile(msgVpnName + "-clients-subscriptions.csv", output);
 
             System.out.println("\n");
-            output = "Queue name;Topic subscription\n";
+            output = "Queue name;Owner;Non-owner permission;Topic subscription\n";
             output += app.displayQueuesSubscriptions(msgVpnName);
             app.writeToFile(msgVpnName + "-queues-subscriptions.csv", output);
         } catch (ApiException e) {
